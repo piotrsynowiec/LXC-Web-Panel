@@ -82,12 +82,12 @@ def info(container):
 
     output = _run('lxc-info -qn {}'.format(container), output=True).splitlines()
     
-    state = output[0].split()[1]
+    state = output[1].split()[1]
 
     if state == 'STOPPED':
         pid = "0"
     else:
-        pid = output[1].split()[1]
+        pid = output[2].split()[1]
 
     return {'state': state,
             'pid': pid}
@@ -99,7 +99,8 @@ def ls():
 
     Note: Directory mode for Ubuntu 12/13 compatibility
     '''
-    try: ct_list = os.listdir('/var/lib/lxc/')
+    base_path='/var/lib/lxc'
+    try: ct_list = [x for x in os.listdir(base_path) if os.path.isdir(os.path.join(base_path, x))]
     except OSError: ct_list = []
     return sorted(ct_list)
 
@@ -112,7 +113,6 @@ def listx():
     stopped = []
     frozen = []
     running = []
-
     for container in ls():
         state = info(container)['state']
         if state == 'RUNNING':
@@ -121,7 +121,6 @@ def listx():
             frozen.append(container)
         elif state == 'STOPPED':
             stopped.append(container)
-
     return {'RUNNING': running,
             'FROZEN': frozen,
             'STOPPED': stopped}
